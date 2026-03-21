@@ -151,6 +151,7 @@ if (catalogueBtn) {
 
 // Applications Carousel functionality (scroll-based, responsive)
 const track = document.getElementById('carouselTrack');
+const appsWrapper = document.querySelector('.applications-carousel-wrapper');
 const appNextBtn = document.getElementById('appNextBtn');
 const appPrevBtn = document.getElementById('appPrevBtn');
 
@@ -165,16 +166,16 @@ function getAppCardStep() {
 }
 
 function scrollApplications(dir = 1) {
-  if (!track) return;
+  if (!track || !appsWrapper) return;
   const step = getAppCardStep();
   if (!step) return;
 
-  const maxScroll = track.scrollWidth - track.parentElement.clientWidth;
-  const next = Math.min(Math.max(track.scrollLeft + dir * step, 0), maxScroll);
-  track.scrollTo({ left: next, behavior: 'smooth' });
+  const maxScroll = track.scrollWidth - appsWrapper.clientWidth;
+  const next = Math.min(Math.max(appsWrapper.scrollLeft + dir * step, 0), maxScroll);
+  appsWrapper.scrollTo({ left: next, behavior: 'smooth' });
 }
 
-if (track && appNextBtn && appPrevBtn) {
+if (track && appNextBtn && appPrevBtn && appsWrapper) {
   appNextBtn.addEventListener('click', () => scrollApplications(1));
   appPrevBtn.addEventListener('click', () => scrollApplications(-1));
 }
@@ -184,9 +185,53 @@ const processTabs = document.querySelectorAll('.process-tab');
 const processContents = document.querySelectorAll('.process-content');
 const processPrevBtn = document.getElementById('processPrevBtn');
 const processNextBtn = document.getElementById('processNextBtn');
+const processTabsContainer = document.querySelector('.process-tabs-container');
 
 let currentProcessTab = 0;
 const totalTabs = processTabs.length;
+
+const isMobileProcess = () => window.matchMedia('(max-width: 768px)').matches;
+
+function ensureProcessStepBadges() {
+  if (!processTabs.length || !processContents.length) return;
+  const total = processTabs.length;
+
+  // Container-level badge (for mobile)
+  if (processTabsContainer) {
+    let containerBadge = processTabsContainer.querySelector('.process-step-badge-container');
+    if (!containerBadge) {
+      containerBadge = document.createElement('div');
+      containerBadge.className = 'process-step-badge process-step-badge-container';
+      processTabsContainer.insertBefore(containerBadge, processTabsContainer.firstChild);
+    }
+    const label = processTabs[currentProcessTab]?.textContent?.trim() || '';
+    containerBadge.textContent = `Step ${currentProcessTab + 1}/${total}: ${label}`;
+  }
+
+  // Card-level badges (kept for future use; hidden on mobile)
+  processContents.forEach((content, idx) => {
+    let badge = content.querySelector('.process-step-badge');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'process-step-badge';
+      content.insertBefore(badge, content.firstChild);
+    }
+
+    const label = processTabs[idx]?.textContent?.trim() || '';
+    badge.textContent = `Step ${idx + 1}/${total}: ${label}`;
+  });
+}
+
+function applyProcessVisibility() {
+  const mobile = isMobileProcess();
+  processContents.forEach((content, idx) => {
+    if (mobile) {
+      content.style.display = idx === currentProcessTab ? 'flex' : 'none';
+    } else {
+      content.style.display = '';
+    }
+  });
+}
 
 function showProcessTab(index) {
   // Remove active class from all tabs and contents
@@ -197,13 +242,20 @@ function showProcessTab(index) {
   processTabs[index].classList.add('active');
   processContents[index].classList.add('active');
   
-  // Scroll tab into view
-  processTabs[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  // Scroll tab into view (desktop only)
+  if (!isMobileProcess()) {
+    processTabs[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  }
+
+  applyProcessVisibility();
+  ensureProcessStepBadges();
 }
 
 // Tab click handlers
 processTabs.forEach((tab, index) => {
   tab.addEventListener('click', () => {
+    // On mobile we keep single-card flow via arrows; ignore tab clicks there
+    if (isMobileProcess()) return;
     currentProcessTab = index;
     showProcessTab(currentProcessTab);
   });
@@ -342,6 +394,39 @@ carouselArrows.forEach(arrow => {
     
     showProcessTab(currentProcessTab);
   });
+});
+
+// Ensure correct visibility on load and when resizing
+applyProcessVisibility();
+ensureProcessStepBadges();
+
+// Sticky bar for Manufacturing section
+const manufacturingSection = document.querySelector('.manufacturing-section');
+const manufacturingStickyBar = document.getElementById('manufacturingStickyBar');
+
+if (manufacturingSection && manufacturingStickyBar) {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          manufacturingStickyBar.classList.add('visible');
+          manufacturingStickyBar.setAttribute('aria-hidden', 'false');
+        } else {
+          manufacturingStickyBar.classList.remove('visible');
+          manufacturingStickyBar.setAttribute('aria-hidden', 'true');
+        }
+      });
+    },
+    {
+      threshold: 0.2,
+    }
+  );
+
+  observer.observe(manufacturingSection);
+}
+window.addEventListener('resize', () => {
+  applyProcessVisibility();
+  ensureProcessStepBadges();
 });
 
 // Contact Form Submission
