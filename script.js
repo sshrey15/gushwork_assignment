@@ -47,6 +47,118 @@ prevBtn.addEventListener('click', () => showSlide(currentIdx - 1));
 thumbs.forEach((t, i) => {
     t.addEventListener('click', () => showSlide(i));
 });
+// Inline zoom with square cursor + side preview (no CSS file changes)
+const heroContainer = document.querySelector('.hero-container');
+const mainCarousel = document.querySelector('.main-carousel');
+const carouselImages = document.querySelectorAll('.main-carousel .carousel-item img');
+const isFinePointer = window.matchMedia('(pointer: fine)').matches;
+
+let zoomLens = null;
+let zoomPreview = null;
+
+const ensureZoomElements = () => {
+  if (!heroContainer || !mainCarousel) return false;
+
+  if (!zoomLens) {
+    zoomLens = document.createElement('div');
+    zoomLens.style.position = 'absolute';
+    zoomLens.style.width = '140px';
+    zoomLens.style.height = '140px';
+    zoomLens.style.border = '1.5px solid #2b3990';
+    zoomLens.style.boxShadow = '0 6px 18px rgba(0,0,0,0.15)';
+    zoomLens.style.background = 'rgba(255,255,255,0.15)';
+    zoomLens.style.pointerEvents = 'none';
+    zoomLens.style.display = 'none';
+    zoomLens.style.zIndex = '1500';
+    zoomLens.style.borderRadius = '4px';
+    mainCarousel.style.position = mainCarousel.style.position || 'relative';
+    mainCarousel.appendChild(zoomLens);
+  }
+
+  if (!zoomPreview) {
+    zoomPreview = document.createElement('div');
+    zoomPreview.style.position = 'absolute';
+    zoomPreview.style.top = '10px';
+    zoomPreview.style.width = '240px';
+    zoomPreview.style.height = '240px';
+    zoomPreview.style.border = '1px solid #e5e7eb';
+    zoomPreview.style.borderRadius = '12px';
+    zoomPreview.style.boxShadow = '0 12px 30px rgba(0,0,0,0.18)';
+    zoomPreview.style.backgroundRepeat = 'no-repeat';
+    zoomPreview.style.backgroundPosition = 'center';
+    zoomPreview.style.display = 'none';
+    zoomPreview.style.zIndex = '1600';
+    zoomPreview.style.overflow = 'hidden';
+    zoomPreview.style.backgroundColor = '#fff';
+    heroContainer.style.position = heroContainer.style.position || 'relative';
+    heroContainer.appendChild(zoomPreview);
+  }
+
+  return zoomLens && zoomPreview;
+};
+
+const hideZoom = () => {
+  if (zoomLens) zoomLens.style.display = 'none';
+  if (zoomPreview) zoomPreview.style.display = 'none';
+};
+
+const attachZoom = (img) => {
+  if (!ensureZoomElements() || !isFinePointer) return;
+  const lensSize = 140;
+
+  const move = (e) => {
+    const parent = img.closest('.carousel-item');
+    if (!parent?.classList.contains('active')) {
+      hideZoom();
+      return;
+    }
+
+    const imgRect = img.getBoundingClientRect();
+    const carRect = mainCarousel.getBoundingClientRect();
+    const heroRect = heroContainer.getBoundingClientRect();
+
+    let x = e.clientX - imgRect.left - lensSize / 2;
+    let y = e.clientY - imgRect.top - lensSize / 2;
+
+    x = Math.max(0, Math.min(x, imgRect.width - lensSize));
+    y = Math.max(0, Math.min(y, imgRect.height - lensSize));
+
+    zoomLens.style.display = 'block';
+    zoomPreview.style.display = 'block';
+
+    zoomLens.style.left = `${x + (imgRect.left - carRect.left)}px`;
+    zoomLens.style.top = `${y + (imgRect.top - carRect.top)}px`;
+
+  // Position preview over the heading/title area (to the right of carousel)
+  const previewLeft = (carRect.width + 32);
+  zoomPreview.style.left = `${previewLeft}px`;
+  zoomPreview.style.top = `80px`;
+
+    const previewW = parseFloat(zoomPreview.style.width);
+    const previewH = parseFloat(zoomPreview.style.height);
+    const scaleX = previewW / lensSize;
+    const scaleY = previewH / lensSize;
+
+    zoomPreview.style.backgroundImage = `url(${img.src})`;
+    zoomPreview.style.backgroundSize = `${imgRect.width * scaleX}px ${imgRect.height * scaleY}px`;
+    zoomPreview.style.backgroundPosition = `-${x * scaleX}px -${y * scaleY}px`;
+  };
+
+  const enter = (e) => {
+    if (!isFinePointer || e.pointerType === 'touch') return;
+    const parent = img.closest('.carousel-item');
+    if (!parent?.classList.contains('active')) return;
+    move(e);
+  };
+
+  const leave = () => hideZoom();
+
+  img.addEventListener('pointerenter', enter);
+  img.addEventListener('pointermove', move);
+  img.addEventListener('pointerleave', leave);
+};
+
+carouselImages.forEach(attachZoom);
 
 // Image Zoom Functionality
 function imageZoom(container) {
@@ -428,6 +540,116 @@ window.addEventListener('resize', () => {
   applyProcessVisibility();
   ensureProcessStepBadges();
 });
+
+// Specs download modal
+const specsBtn = document.querySelector('.specs-download-btn');
+const specsModal = document.getElementById('specsModal');
+const specsClose = document.querySelector('#specsModal .modal-close');
+const specsForm = document.getElementById('specsModalForm');
+
+// Quote modal
+const quoteModal = document.getElementById('quoteModal');
+const quoteClose = document.querySelector('#quoteModal .modal-close');
+const quoteForm = document.getElementById('quoteModalForm');
+const quoteOpenButtons = document.querySelectorAll('.btn-primary, .msb-btn');
+
+const openSpecsModal = () => {
+  if (!specsModal) return;
+  specsModal.classList.add('visible');
+  specsModal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  const emailInput = specsForm?.querySelector('input[name="email"]');
+  if (emailInput) emailInput.focus();
+};
+
+const closeSpecsModal = () => {
+  if (!specsModal) return;
+  specsModal.classList.remove('visible');
+  specsModal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+};
+
+const openQuoteModal = () => {
+  if (!quoteModal) return;
+  quoteModal.classList.add('visible');
+  quoteModal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  const nameInput = quoteForm?.querySelector('input[name="name"]');
+  if (nameInput) nameInput.focus();
+};
+
+const closeQuoteModal = () => {
+  if (!quoteModal) return;
+  quoteModal.classList.remove('visible');
+  quoteModal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+};
+
+if (specsBtn && specsModal) {
+  specsBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    openSpecsModal();
+  });
+}
+
+quoteOpenButtons.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    openQuoteModal();
+  });
+});
+
+if (specsClose) {
+  specsClose.addEventListener('click', closeSpecsModal);
+}
+
+if (quoteClose) {
+  quoteClose.addEventListener('click', closeQuoteModal);
+}
+
+if (specsModal) {
+  specsModal.addEventListener('click', (e) => {
+    if (e.target === specsModal) closeSpecsModal();
+  });
+}
+
+if (quoteModal) {
+  quoteModal.addEventListener('click', (e) => {
+    if (e.target === quoteModal) closeQuoteModal();
+  });
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeSpecsModal();
+    closeQuoteModal();
+  }
+});
+
+if (specsForm) {
+  specsForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = specsForm.querySelector('input[name="email"]').value.trim();
+    if (!email) return;
+    // Placeholder for submission logic
+    alert(`Thanks! We will email the brochure to ${email}.`);
+    closeSpecsModal();
+    specsForm.reset();
+  });
+}
+
+if (quoteForm) {
+  quoteForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = quoteForm.querySelector('input[name="name"]').value.trim();
+    const email = quoteForm.querySelector('input[name="email"]').value.trim();
+    const phone = quoteForm.querySelector('input[name="phone"]').value.trim();
+    if (!name || !email || !phone) return;
+    alert(`Thanks ${name}! We will reach out shortly.`);
+    closeQuoteModal();
+    quoteForm.reset();
+  });
+}
 
 // Contact Form Submission
 const contactForm = document.getElementById('contactForm');

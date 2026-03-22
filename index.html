@@ -44,7 +44,9 @@
     <!-- Sticky Manufacturing CTA (appears when Manufacturing section is in view) -->
     <div class="manufacturing-sticky-bar" aria-hidden="true" id="manufacturingStickyBar">
       <div class="msb-left">
-        <div class="msb-thumb"></div>
+
+          <img class="msb-thumb" src="/public/images/img1.jpg" alt="">
+      
         <div class="msb-text">
           <p class="msb-title">Premium HDPE Pipes & Coils for Modern Infrastructure</p>
           <p class="msb-price">₹4,80,000 - 7,90,000</p>
@@ -147,9 +149,11 @@
 
           <div class="button-row">
             <button class="btn-primary">Get Custom Quote</button>
-            <button class="btn-secondary">View Technical Specs <span>
+            
+            <a href="#techspec">
+          <button class="btn-secondary">View Technical Specs <span>
               <img src="/public/svgs/right.svg" alt="">
-            </span></button>
+            </span></button></a>
           </div>
         </div>
       </div>
@@ -181,7 +185,7 @@
     </section>
 
     <!-- Technical Specifications Section -->
-    <section class="tech-specs-section">
+    <section id="techspec" class="tech-specs-section">
       <div class="tech-specs-container">
         <h2 class="tech-specs-title">Technical Specifications at a Glance</h2>
         <p class="tech-specs-subtitle">
@@ -918,6 +922,63 @@
     </div>
   </div>
 </section>
+
+ <!-- Specs Download Modal -->
+ <div class="modal-overlay" id="specsModal" aria-hidden="true">
+   <div class="modal-dialog modal-dialog--specs" role="dialog" aria-modal="true" aria-labelledby="specsModalTitle">
+     <div class="modal-header">
+       <h3 class="modal-title" id="specsModalTitle">Let us email the entire catalogue to you</h3>
+       <button class="modal-close" type="button" aria-label="Close modal">×</button>
+     </div>
+
+     <form class="modal-form" id="specsModalForm">
+       <div class="modal-body">
+         <label class="modal-label" for="modalEmail">Your Email *</label>
+         <input id="modalEmail" name="email" type="email" required placeholder="example@gmail.com" />
+
+         <label class="modal-label" for="modalContact">Your Contact (Optional)</label>
+         <input id="modalContact" name="contact" type="tel" placeholder="+91-0000000000" />
+       </div>
+       <div class="modal-footer">
+         <button class="modal-submit" type="submit">Download Brochure</button>
+       </div>
+     </form>
+   </div>
+ </div>
+
+   <!-- Custom Quote Modal -->
+   <div class="modal-overlay" id="quoteModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog--quote" role="dialog" aria-modal="true" aria-labelledby="quoteModalTitle">
+      <div class="modal-header">
+        <h3 class="modal-title" id="quoteModalTitle">Request a call back</h3>
+        <button class="modal-close" type="button" aria-label="Close modal">×</button>
+      </div>
+
+      <form class="modal-form" id="quoteModalForm">
+        <div class="modal-body">
+          <input id="quoteName" name="name" type="text" required placeholder="Full Name" />
+
+          <input id="quoteCompany" name="company" type="text" placeholder="Company Name" />
+
+          <input id="quoteEmail" name="email" type="email" required placeholder="Email Address" />
+
+          <div class="modal-phone-group">
+            <select class="modal-country-code" name="countryCode" aria-label="Country code">
+              <option value="+91" selected>+91</option>
+              <option value="+1">+1</option>
+              <option value="+44">+44</option>
+              <option value="+61">+61</option>
+              <option value="+971">+971</option>
+            </select>
+            <input id="quotePhone" class="modal-phone-input" name="phone" type="tel" required placeholder="7003026616" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-submit" type="submit">Submit Form</button>
+        </div>
+      </form>
+    </div>
+   </div>
 
 <!-- CTA Section with Contact Form -->
 <section class="cta-final-section">
