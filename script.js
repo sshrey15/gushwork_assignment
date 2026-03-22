@@ -87,12 +87,13 @@ const heroContainer = document.querySelector('.hero-container');
 const mainCarousel = document.querySelector('.main-carousel');
 const carouselImages = document.querySelectorAll('.main-carousel .carousel-item img');
 const isFinePointer = window.matchMedia('(pointer: fine)').matches;
+const shouldDisableZoom = () => window.matchMedia('(max-width: 1024px)').matches;
 
 let zoomLens = null;
 let zoomPreview = null;
 
 const ensureZoomElements = () => {
-  if (!heroContainer || !mainCarousel) return false;
+  if (!heroContainer || !mainCarousel || shouldDisableZoom()) return false;
 
   if (!zoomLens) {
     zoomLens = document.createElement('div');
@@ -142,6 +143,11 @@ const attachZoom = (img) => {
   const lensSize = 140;
 
   const move = (e) => {
+    if (shouldDisableZoom()) {
+      hideZoom();
+      return;
+    }
+
     const parent = img.closest('.carousel-item');
     if (!parent?.classList.contains('active')) {
       hideZoom();
@@ -180,7 +186,7 @@ const attachZoom = (img) => {
   };
 
   const enter = (e) => {
-    if (!isFinePointer || e.pointerType === 'touch') return;
+    if (!isFinePointer || e.pointerType === 'touch' || shouldDisableZoom()) return;
     const parent = img.closest('.carousel-item');
     if (!parent?.classList.contains('active')) return;
     move(e);
@@ -337,7 +343,8 @@ const processTabsContainer = document.querySelector('.process-tabs-container');
 let currentProcessTab = 0;
 const totalTabs = processTabs.length;
 
-const isMobileProcess = () => window.matchMedia('(max-width: 768px)').matches;
+// Treat tablet like mobile for single-card flow
+const isMobileProcess = () => window.matchMedia('(max-width: 1024px)').matches;
 
 function ensureProcessStepBadges() {
   if (!processTabs.length || !processContents.length) return;
@@ -551,16 +558,29 @@ ensureProcessStepBadges();
 const manufacturingSection = document.querySelector('.manufacturing-section');
 const manufacturingStickyBar = document.getElementById('manufacturingStickyBar');
 
+const showManufacturingSticky = () => {
+  manufacturingStickyBar.classList.add('visible');
+  manufacturingStickyBar.setAttribute('aria-hidden', 'false');
+};
+
+const hideManufacturingSticky = () => {
+  manufacturingStickyBar.classList.remove('visible');
+  manufacturingStickyBar.setAttribute('aria-hidden', 'true');
+};
+
 if (manufacturingSection && manufacturingStickyBar) {
+  let manufacturingInView = false;
+  let lastManufacturingScrollY = window.scrollY;
+
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          manufacturingStickyBar.classList.add('visible');
-          manufacturingStickyBar.setAttribute('aria-hidden', 'false');
+          manufacturingInView = true;
+          showManufacturingSticky();
         } else {
-          manufacturingStickyBar.classList.remove('visible');
-          manufacturingStickyBar.setAttribute('aria-hidden', 'true');
+          manufacturingInView = false;
+          hideManufacturingSticky();
         }
       });
     },
@@ -570,6 +590,27 @@ if (manufacturingSection && manufacturingStickyBar) {
   );
 
   observer.observe(manufacturingSection);
+
+  const handleManufacturingScroll = () => {
+    if (!manufacturingInView) {
+      hideManufacturingSticky();
+      lastManufacturingScrollY = window.scrollY;
+      return;
+    }
+
+    const currentY = window.scrollY;
+    const delta = currentY - lastManufacturingScrollY;
+
+    if (delta > 2) {
+      showManufacturingSticky();
+    } else if (delta < -2) {
+      hideManufacturingSticky();
+    }
+
+    lastManufacturingScrollY = currentY;
+  };
+
+  window.addEventListener('scroll', handleManufacturingScroll, { passive: true });
 }
 window.addEventListener('resize', () => {
   applyProcessVisibility();
