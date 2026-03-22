@@ -2064,6 +2064,33 @@ td .faq-catalogue .catalogue-btn,
     }
   }
 
+/* Desktop-only: show overlay arrows over process image */
+@media (min-width: 1025px) {
+  .process-image .carousel-controls {
+    display: flex;
+    pointer-events: none;
+  }
+
+  .process-image .carousel-controls .carousel-arrow {
+    pointer-events: auto;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+    font-size: 0;
+    padding: 0;
+  }
+
+  .process-image .carousel-controls .carousel-arrow.prev::after {
+    content: "←";
+    font-size: 18px;
+    color: #4d545c;
+  }
+
+  .process-image .carousel-controls .carousel-arrow.next::after {
+    content: "→";
+    font-size: 18px;
+    color: #4d545c;
+  }
+}
+
 /* Testimonials Section */
 .testimonials-section {
   background-image:
