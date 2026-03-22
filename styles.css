@@ -23,7 +23,21 @@ body {
   align-items: center;
   position: sticky;
   top: 0;
+  left: 0;
+  width: 100%;
   z-index: 1000;
+  transform: translateY(0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.navbar.nav-visible {
+  transform: translateY(0);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.navbar.nav-hidden {
+  transform: translateY(-100%);
+  box-shadow: none;
 }
 
 .nav-container {

@@ -1,9 +1,44 @@
-// Navbar toggle
+// Navbar toggle + scroll hide/show
 const hamburger = document.querySelector(".hamburger");
 const navMenu = document.querySelector(".nav-menu");
+const navbar = document.querySelector('.navbar');
+let lastScrollY = window.scrollY;
+
+const updateNavbarVisibility = () => {
+  if (!navbar) return;
+
+  const currentY = window.scrollY;
+  const delta = currentY - lastScrollY;
+  const menuOpen = navMenu?.classList.contains('active');
+
+  // Always show at the very top or when menu is open
+  if (currentY <= 0 || menuOpen) {
+    navbar.classList.add('nav-visible');
+    navbar.classList.remove('nav-hidden');
+    lastScrollY = currentY;
+    return;
+  }
+
+  // Show on scroll down, hide on scroll up
+  if (delta > 2) {
+    navbar.classList.add('nav-visible');
+    navbar.classList.remove('nav-hidden');
+  } else if (delta < -2) {
+    navbar.classList.add('nav-hidden');
+    navbar.classList.remove('nav-visible');
+  }
+
+  lastScrollY = currentY;
+};
+
+if (navbar) {
+  navbar.classList.add('nav-visible');
+  window.addEventListener('scroll', updateNavbarVisibility, { passive: true });
+}
 
 hamburger.addEventListener("click", () => {
     navMenu.classList.toggle("active");
+  updateNavbarVisibility();
 });
 
 // Close menu when a link is clicked
